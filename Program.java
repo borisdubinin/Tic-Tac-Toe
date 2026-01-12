@@ -44,12 +44,12 @@ public class Program {
         }
 
         SessionManager sessionManager = new SessionManager(options, ui);
-        SessionResult result = sessionManager.execute();
+        SessionData data = sessionManager.execute();
 
-        if (result != null && result.getTotalRounds() > 0) {
-            ui.showSessionSummary(result);
+        if (data != null && data.result.getTotalRounds() > 0) {
+            ui.showSessionSummary(data);
             try {
-                statsService.saveSession(result);
+                statsService.saveSession(data);
             }
             catch (Exception e) {
                 ui.showError("Произошла ошибка: " + e.getMessage());
