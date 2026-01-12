@@ -1,7 +1,7 @@
 package ui;
 
 import models.*;
-import services.Game;
+import services.GameService;
 import services.SessionManager;
 
 import java.util.List;
@@ -107,7 +107,7 @@ public class ProgramUI {
             System.out.printf("    4. Размер поля: %-20s \n", currentFieldSize + "x" + currentFieldSize);
             System.out.printf("    5. Символ первого игрока: %-12s \n", currentPlayer1Symbol.toString());
             System.out.printf("    6. Менять очередность хода: %-9s \n", currentSwitchTurns ? "Да" : "Нет");
-            System.out.printf("    7. Формат игры: %-22s n", getGameFormatText(currentWinsToComplete));
+            System.out.printf("    7. Формат игры: %-22s \n", getGameFormatText(currentWinsToComplete));
             System.out.println();
             System.out.println("\n  Выберите настройку для изменения (1-7):");
             System.out.println("  или введите 'старт' для начала игры");
@@ -332,10 +332,8 @@ public class ProgramUI {
         }
     }
 
-    public void showSessionSummary(SessionResult result){
+    public void showSessionSummary(SessionData data){
         clearScreen();
-
-        SessionOptions options = result.getOptions();
 
         System.out.println();
         System.out.println("╔════════════════════════════════════════╗");
@@ -343,54 +341,37 @@ public class ProgramUI {
         System.out.println("╚════════════════════════════════════════╝\n");
 
         System.out.println("  Настройки сессии:");
-        System.out.println("  Режим: " + options.gameMode());
-        System.out.println("  Поле: " + options.fieldSize() + "x" + options.fieldSize());
-        System.out.println("  Игрок 1: " + options.player1Name() + " (" + options.player1Symbol() + ")");
-        System.out.println("  Игрок 2: " + options.player2Name() + " (" + options.player2Symbol() + ")");
-        System.out.println("  Формат: " + getGameFormatText(options.winsToComplete()));
+        System.out.println("  Режим: " + data.options.gameMode());
+        System.out.println("  Поле: " + data.options.fieldSize() + "x" + data.options.fieldSize());
+        System.out.println("  Игрок 1: " + data.options.player1Name() + " (" + data.options.player1Symbol() + ")");
+        System.out.println("  Игрок 2: " + data.options.player2Name() + " (" + data.options.player2Symbol() + ")");
+        System.out.println("  Формат: " + getGameFormatText(data.options.winsToComplete()));
         System.out.println();
         System.out.println("═".repeat(44));
         System.out.println();
 
         System.out.println("  Результаты:");
-        System.out.printf("    Всего раундов: %-20d\n", result.getTotalRounds());
-        System.out.printf("    Побед %s: %-23d\n", options.player1Name(), result.getPlayer1Wins());
-        System.out.printf("    Побед %s: %-23d\n", options.player2Name(), result.getPlayer2Wins());
-        System.out.printf("    Ничьих: %-28d\n", result.getDraws());
+        System.out.printf("    Всего раундов: %-20d\n", data.result.getTotalRounds());
+        System.out.printf("    Побед %s: %-23d\n", data.options.player1Name(), data.result.getPlayer1Wins());
+        System.out.printf("    Побед %s: %-23d\n", data.options.player2Name(), data.result.getPlayer2Wins());
+        System.out.printf("    Ничьих: %-28d\n", data.result.getDraws());
         System.out.println();
 
         // Расчет процентов
-        if (result.getTotalRounds() > 0) {
-            double p1Percent = (double) result.getPlayer1Wins() / result.getTotalRounds() * 100;
-            double p2Percent = (double) result.getPlayer2Wins() / result.getTotalRounds() * 100;
-            double drawPercent = (double) result.getDraws() / result.getTotalRounds() * 100;
+        if (data.result.getTotalRounds() > 0) {
+            double p1Percent = (double) data.result.getPlayer1Wins() / data.result.getTotalRounds() * 100;
+            double p2Percent = (double) data.result.getPlayer2Wins() / data.result.getTotalRounds() * 100;
+            double drawPercent = (double) data.result.getDraws() / data.result.getTotalRounds() * 100;
 
             System.out.println("  Процентные соотношения:");
-            System.out.printf("    %s: %.1f%%\n", options.player1Name(), p1Percent);
-            System.out.printf("    %s: %.1f%%\n", options.player2Name(), p2Percent);
+            System.out.printf("    %s: %.1f%%\n", data.options.player1Name(), p1Percent);
+            System.out.printf("    %s: %.1f%%\n", data.options.player2Name(), p2Percent);
             System.out.printf("    Ничьи: %.1f%%\n", drawPercent);
             System.out.println();
         }
 
         // Определение победителя сессии
-        String sessionWinner;
-        if (options.winsToComplete() > 0) {
-            if (result.getPlayer1Wins() >= options.winsToComplete()) {
-                sessionWinner = options.player1Name() + " победил в серии!";
-            } else if (result.getPlayer2Wins() >= options.winsToComplete()) {
-                sessionWinner = options.player2Name() + " победил в серии!";
-            } else {
-                sessionWinner = "Серия не завершена";
-            }
-        } else {
-            if (result.getPlayer1Wins() > result.getPlayer2Wins()) {
-                sessionWinner = options.player1Name() + " победил!";
-            } else if (result.getPlayer2Wins() > result.getPlayer1Wins()) {
-                sessionWinner = options.player2Name() + " победил!";
-            } else {
-                sessionWinner = "Ничья!";
-            }
-        }
+        String sessionWinner = getSessionWinner(data);
 
         System.out.println("  Результат сессии: " + sessionWinner);
         System.out.println();
@@ -398,6 +379,28 @@ public class ProgramUI {
         System.out.println();
         System.out.print("  Нажмите Enter для возврата в меню...");
         scanner.nextLine();
+    }
+
+    private static String getSessionWinner(SessionData data) {
+        String sessionWinner;
+        if (data.options.winsToComplete() > 0) {
+            if (data.result.getPlayer1Wins() >= data.options.winsToComplete()) {
+                sessionWinner = data.options.player1Name() + " победил в серии!";
+            } else if (data.result.getPlayer2Wins() >= data.options.winsToComplete()) {
+                sessionWinner = data.options.player2Name() + " победил в серии!";
+            } else {
+                sessionWinner = "Серия не завершена";
+            }
+        } else {
+            if (data.result.getPlayer1Wins() > data.result.getPlayer2Wins()) {
+                sessionWinner = data.options.player1Name() + " победил!";
+            } else if (data.result.getPlayer2Wins() > data.result.getPlayer1Wins()) {
+                sessionWinner = data.options.player2Name() + " победил!";
+            } else {
+                sessionWinner = "Ничья!";
+            }
+        }
+        return sessionWinner;
     }
 
     public void showStatistics(Statistics stat) {
@@ -585,10 +588,7 @@ public class ProgramUI {
         scanner.nextLine();
     }
 
-    public void showGameState(SessionManager.GameStateData gameState,
-                              String player1Name, int player1Wins,
-                              String player2Name, int player2Wins,
-                              int currentRound, int maxRounds, int draws) {
+    public void drawRound(SessionData data, GameService gameService) {
         clearScreen();
 
         System.out.println();
@@ -597,15 +597,15 @@ public class ProgramUI {
         System.out.println("╚════════════════════════════════════════╝\n");
 
         System.out.println("  Счет:");
-        System.out.printf("    %s: %d\n", player1Name, player1Wins);
-        System.out.printf("    %s: %d\n", player2Name, player2Wins);
-        System.out.printf("    Ничьих: %d\n", draws);
-        System.out.printf("    Раунд: %d/%d\n", currentRound, maxRounds);
+        System.out.printf("    %s: %d\n", data.options.player1Name(), data.result.getPlayer1Wins());
+        System.out.printf("    %s: %d\n", data.options.player2Name(), data.result.getPlayer2Wins());
+        System.out.printf("    Ничьих: %d\n", data.result.getDraws());
+        System.out.printf("    Раунд: %d/%d\n", data.currentRound, data.options.winsToComplete() * 2 + 1);
         System.out.println();
 
-        drawField(gameState.field());
+        drawField(gameService, data.options.fieldSize());
 
-        System.out.println("\n  Ходит: " + gameState.currentPlayer());
+        System.out.println("\n  Ходит: " + data.currentPlayerName);
     }
 
     public void showRoundResult(SessionResult.GameResult result, String message, boolean waitForContinue) {
@@ -617,7 +617,7 @@ public class ProgramUI {
 
         System.out.println("  " + message);
         System.out.println();
-        System.out.println("  Количество ходов: " + result.getMovesCount());
+        System.out.println("  Количество ходов: " + result.movesCount());
 
         if (waitForContinue) {
             System.out.println();
@@ -648,55 +648,47 @@ public class ProgramUI {
                 input.equals("y") || input.equals("yes");
     }
 
-    private void drawField(String[][] field) {
-        int size = field.length;
-
+    private void drawField(GameService gameService, int size) {
         // Заголовок с номерами столбцов
         System.out.print("    ");
-        for (int col = 0; col < size; col++) {
-            System.out.print(" " + (col + 1) + " ");
+        for (int j = 0; j < size; j++) {
+            System.out.print(" " + (j + 1) + " ");
             System.out.print(" ");
         }
         System.out.println();
 
         // Верхняя граница
-        System.out.print("   +");
-        for (int col = 0; col < size; col++) {
-            System.out.print("---");
-            if (col < size - 1) System.out.print("+");
-        }
-        System.out.println("+");
+        drawHorisontalLine(size);
 
         // Само поле
-        for (int row = 0; row < size; row++) {
-            System.out.print(" " + (row + 1) + " |");
-            for (int col = 0; col < size; col++) {
-                System.out.print(" " + field[row][col] + " ");
-                if (col < size - 1) System.out.print("|");
+        for (int i = 0; i < size; i++) {
+            System.out.print(" " + (i + 1) + " |");
+            for (int j = 0; j < size; j++) {
+                System.out.print(" " + gameService.getSymbol(i+1, j+1) + " ");
+                if (j < size - 1) System.out.print("|");
             }
             System.out.println("|");
 
             // Разделительная линия между строками
-            if (row < size - 1) {
-                System.out.print("   +");
-                for (int col = 0; col < size; col++) {
-                    System.out.print("---");
-                    if (col < size - 1) System.out.print("+");
-                }
-                System.out.println("+");
+            if (i < size - 1) {
+                drawHorisontalLine(size);
             }
         }
 
         // Нижняя граница
+        drawHorisontalLine(size);
+    }
+
+    private void drawHorisontalLine(int size) {
         System.out.print("   +");
-        for (int col = 0; col < size; col++) {
+        for (int i = 0; i < size; i++) {
             System.out.print("---");
-            if (col < size - 1) System.out.print("+");
+            if (i < size - 1) System.out.print("+");
         }
         System.out.println("+");
     }
 
-    public Coordinates getMove(Game game, SessionManager session){
+    public Coordinates getMove(GameService gameService, SessionManager session){
         while (true) {
             System.out.print("\n Введите положение символа (строка столбец или 'выход'): ");
             String input = scanner.nextLine().trim();
