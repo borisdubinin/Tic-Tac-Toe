@@ -11,7 +11,7 @@ public class HumanMoveProvider implements MoveProvider {
     }
 
     @Override
-    public Coordinates getMove(Game game, SessionManager session) {
-        return ui.getMove(game, session);
+    public Coordinates getMove(GameService gameService, SessionManager session) {
+        return ui.getMove(gameService, session);
     }
 }
