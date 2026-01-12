@@ -1,5 +1,6 @@
 package services;
 
+import models.SessionData;
 import models.SessionResult;
 import models.SessionOptions;
 import models.Statistics;
@@ -28,9 +29,9 @@ public class StatisticsService {
         }
     }
 
-    public void saveSession(SessionResult result) throws IOException {
+    public void saveSession(SessionData data) throws IOException {
         String filePath = STATS_DIR + File.separator + STATS_FILE;
-        String record = formatSessionRecord(result);
+        String record = formatSessionRecord(data);
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, true))) {
             writer.write(record);
@@ -48,9 +49,6 @@ public class StatisticsService {
 
         List<String> sessions = new ArrayList<>();
         int totalRounds = 0;
-        int player1Wins = 0;
-        int player2Wins = 0;
-        int draws = 0;
 
         try (BufferedReader reader = new BufferedReader(new FileReader(statsFile))) {
             StringBuilder sessionBuilder = new StringBuilder();
@@ -65,12 +63,6 @@ public class StatisticsService {
 
                     if (line.startsWith("total_rounds=")) {
                         totalRounds += Integer.parseInt(line.split("=")[1]);
-                    } else if (line.startsWith("player1_wins=")) {
-                        player1Wins += Integer.parseInt(line.split("=")[1]);
-                    } else if (line.startsWith("player2_wins=")) {
-                        player2Wins += Integer.parseInt(line.split("=")[1]);
-                    } else if (line.startsWith("draws=")) {
-                        draws += Integer.parseInt(line.split("=")[1]);
                     }
                 }
             }
@@ -93,21 +85,19 @@ public class StatisticsService {
         return false;
     }
 
-    private String formatSessionRecord(SessionResult result) {
-        SessionOptions options = result.getOptions();
-
+    private String formatSessionRecord(SessionData data) {
         return "session_date=" + DATE_FORMAT.format(new Date()) + "\n" +
-                "game_mode=" + options.gameMode() + "\n" +
-                "field_size=" + options.fieldSize() + "\n" +
-                "player1_name=" + options.player1Name() + "\n" +
-                "player2_name=" + options.player2Name() + "\n" +
-                "player1_symbol=" + options.player1Symbol() + "\n" +
-                "player2_symbol=" + options.player2Symbol() + "\n" +
-                "wins_to_complete=" + options.winsToComplete() + "\n" +
-                "total_rounds=" + result.getTotalRounds() + "\n" +
-                "player1_wins=" + result.getPlayer1Wins() + "\n" +
-                "player2_wins=" + result.getPlayer2Wins() + "\n" +
-                "draws=" + result.getDraws() + "\n" +
+                "game_mode=" + data.options.gameMode() + "\n" +
+                "field_size=" + data.options.fieldSize() + "\n" +
+                "player1_name=" + data.options.player1Name() + "\n" +
+                "player2_name=" + data.options.player2Name() + "\n" +
+                "player1_symbol=" + data.options.player1Symbol() + "\n" +
+                "player2_symbol=" + data.options.player2Symbol() + "\n" +
+                "wins_to_complete=" + data.options.winsToComplete() + "\n" +
+                "total_rounds=" + data.result.getTotalRounds() + "\n" +
+                "player1_wins=" + data.result.getPlayer1Wins() + "\n" +
+                "player2_wins=" + data.result.getPlayer2Wins() + "\n" +
+                "draws=" + data.result.getDraws() + "\n" +
                 "\n";
     }
 
