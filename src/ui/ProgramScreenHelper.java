@@ -416,7 +416,7 @@ public class ProgramScreenHelper {
     public static void showStatistics(Statistics stat) {
         clearScreen();
 
-        if (stat.totalGames() == 0) {
+        if (stat.totalGameCount() == 0) {
             System.out.println("  Статистика пуста. Сыграйте несколько игр!");
             System.out.println();
             System.out.print("  Нажмите Enter для возврата в меню...");
@@ -426,12 +426,12 @@ public class ProgramScreenHelper {
 
         System.out.println("  Общая статистика:");
         System.out.println();
-        System.out.printf("    Всего игр: %-20d\n", stat.totalGames());
-        System.out.printf("    Всего турниров: %-21d\n", stat.tournamentHistory().size());
+        System.out.printf("    Всего игр: %-20d\n", stat.totalGameCount());
+        System.out.printf("    Всего турниров: %-21d\n", stat.tournamentsData().size());
         System.out.println();
 
-        if (!stat.tournamentHistory().isEmpty()) {
-            showTournamentHistory(stat.tournamentHistory());
+        if (!stat.tournamentsData().isEmpty()) {
+            showTournamentHistory(stat.tournamentsData());
         }
     }
 
@@ -483,7 +483,7 @@ public class ProgramScreenHelper {
                                 System.out.println("  Формат: Турнир до " + wins + " побед");
                             }
                             break;
-                        case "total_games":
+                        case "games_number":
                             System.out.println("  Всего игр: " + value);
                             break;
                         case "player1_wins":
@@ -495,7 +495,7 @@ public class ProgramScreenHelper {
                         case "draws":
                             System.out.println("  Ничьих: " + value);
 
-                            String gamesLine = findLine(lines, "total_games");
+                            String gamesLine = findLine(lines, "games_number");
                             if (gamesLine != null) {
                                 String[] gamesParts = gamesLine.split("=", 2);
                                 int totalGames = Integer.parseInt(gamesParts[1].trim());
