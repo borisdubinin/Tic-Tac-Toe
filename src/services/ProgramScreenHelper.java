@@ -1,9 +1,15 @@
-package ui;
+package services;
 
-import models.*;
 import models.Board;
-import services.ComputerMoveProvider;
-import services.PlayerMoveProvider;
+import models.Coordinates;
+import models.GameMode;
+import models.MainMenuChoice;
+import models.Player;
+import models.Statistics;
+import models.Symbol;
+import models.TournamentData;
+import models.TournamentOptions;
+import models.TournamentResult;
 
 import java.util.List;
 import java.util.Optional;
@@ -31,11 +37,11 @@ public class ProgramScreenHelper {
             String choice = scanner.nextLine().trim().toLowerCase();
             switch (choice) {
                 case "1":
-                    return MainMenuChoice.NEW_GAME;
+                    return MainMenuChoice.NEW_TOURNAMENT;
                 case "2":
                     return MainMenuChoice.SHOW_RULES;
                 case "3":
-                    return MainMenuChoice.SHOW_STATS;
+                    return MainMenuChoice.SHOW_STATISTICS;
                 case "4":
                     return MainMenuChoice.EXIT;
                 default:
@@ -49,7 +55,7 @@ public class ProgramScreenHelper {
         System.out.println("╔════════════════════════════════════════╗");
         System.out.println("║         КРЕСТИКИ-НОЛИКИ  v1.0          ║");
         System.out.println("╠════════════════════════════════════════╣");
-        System.out.println("║  1. Новая игра                         ║");
+        System.out.println("║  1. Новый турнир                       ║");
         System.out.println("║  2. Правила игры                       ║");
         System.out.println("║  3. Статистика                         ║");
         System.out.println("║  4. Выход                              ║");
@@ -82,7 +88,7 @@ public class ProgramScreenHelper {
         scanner.nextLine();
     }
 
-    public static TournamentOptions configureTournament(){
+    public static Optional<TournamentOptions> configureTournament(){
         GameMode currentGameMode = TournamentOptions.DEFAULT_GAME_MODE;
         String currentFirstPlayerName = TournamentOptions.DEFAULT_FIRST_PLAYER_NAME;
         String currentSecondPlayerName = TournamentOptions.DEFAULT_SECOND_PLAYER_NAME;
@@ -156,7 +162,7 @@ public class ProgramScreenHelper {
                     break;
                 case "выход":
                 case "exit":
-                    return null; // Выход без создания настроек
+                    return Optional.empty(); // Выход без создания настроек
                 default:
                     System.out.println("\n Неверный выбор! Пожалуйста, введите число от 1 до 7");
                     System.out.print("  Нажмите Enter для продолжения...");
@@ -166,7 +172,7 @@ public class ProgramScreenHelper {
 
         Symbol currentSecondPlayerSymbol = currentFirstPlayerSymbol == Symbol.CROSS ? Symbol.ZERO : Symbol.CROSS;
 
-        return new TournamentOptions(
+        return Optional.of(new TournamentOptions(
                 currentFieldSize,
                 new Player(currentFirstPlayerSymbol, currentFirstPlayerName, new PlayerMoveProvider()),
                 new Player(currentSecondPlayerSymbol, currentSecondPlayerName, currentGameMode == GameMode.PLAYER_VS_PLAYER
@@ -174,7 +180,7 @@ public class ProgramScreenHelper {
                         : new ComputerMoveProvider()),
                 currentShouldSwitchPlayerTurn,
                 currentExpectedCountOfWins
-        );
+        ));
     }
 
     private static String getGameFormatText(int winsToComplete) {

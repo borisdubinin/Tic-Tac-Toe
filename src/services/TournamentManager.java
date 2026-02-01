@@ -1,7 +1,11 @@
 package services;
 
-import models.*;
-import ui.ProgramScreenHelper;
+import models.Game;
+import models.GameResult;
+import models.Player;
+import models.TournamentData;
+import models.TournamentOptions;
+import models.TournamentResult;
 
 public class TournamentManager {
 
